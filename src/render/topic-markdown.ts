@@ -1,13 +1,47 @@
 import matter from "gray-matter";
 
-import { type Knowledge } from "@/core/knowledge-schema";
+import { type Knowledge } from "@/schema/knowledge-schema";
+
+const renderList = (items: string[]) => {
+  if (items.length === 0) return ["- None"];
+
+  return items.map((item) => `- ${item}`);
+};
+
+const renderRelated = (items: string[]) => {
+  if (items.length === 0) return ["- None"];
+
+  return items.map((item) => {
+    const trimmed = item.trim();
+    if (trimmed.startsWith("[[")) return `- ${trimmed}`;
+    return `- [[${trimmed}]]`;
+  });
+};
+
+const renderSources = (sources: { title: string; relativePath: string }[]) => {
+  if (sources.length === 0) return ["- None"];
+
+  return sources.map((source) => {
+    const rawName = source.relativePath.split("/").at(-1)?.replace(/\.md$/, "");
+
+    const title = source.title
+      .replace(/[-_]+/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+
+    return `- [[${rawName}|${title}]]`;
+  });
+};
 
 export const renderTopicMarkdown = (options: {
   knowledge: Knowledge;
   domain: string;
   topic: string;
   tags: string[];
-  sourcePaths: string[];
+  sources: {
+    title: string;
+    path: string;
+    relativePath: string;
+  }[];
 }) => {
   const now = new Date().toISOString();
 
@@ -16,27 +50,34 @@ export const renderTopicMarkdown = (options: {
     "",
     "## Summary",
     "",
-    options.knowledge.summary,
+    options.knowledge.summary.trim(),
     "",
     "## Key Concepts",
+    "",
     ...options.knowledge.keyConcepts.map(
-      (concept) => `- **${concept.name}**: ${concept.explanation}`,
+      (concept) =>
+        `- **${concept.name.trim()}**: ${concept.explanation.trim()}`,
     ),
     "",
     "## Deep Dive",
+    "",
     ...options.knowledge.deepDive.flatMap((section) => [
-      `### ${section.heading}`,
-      section.body,
+      `### ${section.heading.trim()}`,
+      "",
+      section.body.trim(),
       "",
     ]),
     "## Related",
-    ...options.knowledge.related.map((item) => `- [[${item}]]`),
+    "",
+    ...renderRelated(options.knowledge.related),
     "",
     "## Open Questions",
-    ...options.knowledge.openQuestions.map((item) => `- ${item}`),
+    "",
+    ...renderList(options.knowledge.openQuestions),
     "",
     "## Sources",
-    ...options.sourcePaths.map((sourcePath) => `- ${sourcePath}`),
+    "",
+    ...renderSources(options.sources),
     "",
   ].join("\n");
 

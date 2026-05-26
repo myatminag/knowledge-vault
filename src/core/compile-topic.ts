@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { config } from "@/config/config";
 import { callStructured } from "@/llm/structured";
-import { KnowledgeSchema } from "./knowledge-schema";
+import { KnowledgeSchema } from "../schema/knowledge-schema";
 import { resolveTopicDomainPath } from "@/storage/topic-path";
 import { renderTopicMarkdown } from "@/render/topic-markdown";
 import { scanRawSources, type RawSource } from "@/ingest/raw-source";
@@ -55,8 +55,12 @@ export const compileTopic = async () => {
         - Produce 6-10 key concepts.
         - Produce 4-6 deep-dive sections.
         - Each deep-dive section should be 120-250 words.
+        - Deep-dive section bodies may contain valid Markdown.
+        - Use fenced code blocks for code examples.
+        - Use bullet lists when explaining multiple items.
         - Preserve important technical terms, formulas, and examples.
         - Prefer useful explanation over brevity.
+        - Do not write Markdown headings inside deep-dive bodies; headings are provided separately.
       `,
       user: buildPrompt(group),
     });
@@ -76,7 +80,11 @@ export const compileTopic = async () => {
         domain: first.meta.domain,
         topic: first.meta.topic,
         tags: [...new Set(group.flatMap((raw) => raw.meta.tags))],
-        sourcePaths: group.map((raw) => raw.path),
+        sources: group.map((raw) => ({
+          title: raw.meta.title,
+          path: raw.path,
+          relativePath: path.relative(config.vault.path, raw.path),
+        })),
       }),
     );
 

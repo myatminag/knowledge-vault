@@ -6,7 +6,8 @@
   "scripts": {
     "test": "bun test",
     "compile": "bun run src/cli/compile.ts",
-    "ask": "bun run src/cli/ask.ts"
+    "ask": "bun run src/cli/ask.ts",
+    "seed": "bun run src/cli/seed.ts"
   },
   "dependencies": {
     "dotenv": "^17.4.2",

@@ -3,7 +3,7 @@ import { z } from "zod";
 import path from "node:path";
 import { homedir } from "node:os";
 
-const EnvSchema = z.object({
+const envSchema = z.object({
   OPENAI_API_KEY: z.string().min(1, "OPENAI_API_KEY is required"),
   OPENAI_BASE_URL: z.string().url().optional(),
   KNOWLEDGE_VAULT_PATH: z
@@ -12,7 +12,7 @@ const EnvSchema = z.object({
 });
 
 function loadConfig() {
-  const parsed = EnvSchema.safeParse(process.env);
+  const parsed = envSchema.safeParse(process.env);
 
   if (!parsed.success) {
     const flat = parsed.error.flatten();
