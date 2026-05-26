@@ -1,23 +1,18 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "types": ["node", "bun"]
   },
-  "include": [
-    "cli/**/*.ts",
-    "config/**/*.ts",
-    "pipelines/**/*.ts",
-    "schemas/**/*.ts",
-    "types/**/*.ts",
-    "llm/**/*.ts",
-    "utils/**/*.ts"
-  ],
-  "exclude": ["node_modules", "tests"]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules"]
 }
