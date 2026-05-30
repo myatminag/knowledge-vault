@@ -66,11 +66,29 @@ const selectTopics = async (options: {
 const maybeSaveAnswerMemory = async (options: {
   question: string;
   answer: string;
-  sources: string[];
+  topics: CompiledTopic[];
 }) => {
-  const decision = await decideAnswerMemory(options);
+  const sources = options.topics.map((topic) => topic.relativePath);
+  const targetTopic = options.topics[0];
+  const decision = await decideAnswerMemory({
+    question: options.question,
+    answer: options.answer,
+    sources: options.topics.map((topic) => ({
+      path: topic.relativePath,
+      domain: topic.domain,
+      topic: topic.topic,
+      title: topic.title,
+    })),
+  });
 
   if (!decision.shouldSave || decision.confidence !== "high") {
+    return {
+      memorySaved: false,
+      memoryPath: undefined,
+    };
+  }
+
+  if (!targetTopic?.domain || !targetTopic.topic) {
     return {
       memorySaved: false,
       memoryPath: undefined,
@@ -82,24 +100,24 @@ const maybeSaveAnswerMemory = async (options: {
     question: options.question,
     answer: options.answer,
     title: decision.title,
-    domain: decision.domain,
-    topic: decision.topic,
+    domain: targetTopic.domain,
+    topic: targetTopic.topic,
     tags: decision.tags,
     summary: decision.summary,
-    sourcePaths: options.sources,
+    sourcePaths: sources,
   });
 
   appendWikiLogEntry({
     vaultPath: config.vault.path,
     event: "memory",
     memoryPath: memory.relativePath,
-    domain: decision.domain,
-    topic: decision.topic,
+    domain: targetTopic.domain,
+    topic: targetTopic.topic,
   });
 
   await compileTopic({
-    domain: decision.domain,
-    topic: decision.topic,
+    domain: targetTopic.domain,
+    topic: targetTopic.topic,
   });
 
   return {
@@ -134,7 +152,7 @@ export const askQuestion = async (
   const memory = await maybeSaveAnswerMemory({
     question: trimmedQuestion,
     answer,
-    sources,
+    topics,
   });
 
   appendWikiLogEntry({

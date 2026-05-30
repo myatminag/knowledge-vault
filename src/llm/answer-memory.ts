@@ -15,7 +15,12 @@ const AnswerMemoryDecisionSchema = z.object({
 export const decideAnswerMemory = async (options: {
   question: string;
   answer: string;
-  sources: string[];
+  sources: {
+    path: string;
+    domain?: string;
+    topic?: string;
+    title: string;
+  }[];
 }) => {
   return callStructured({
     schema: AnswerMemoryDecisionSchema,
@@ -28,7 +33,9 @@ export const decideAnswerMemory = async (options: {
       - Save only if the answer is reusable beyond this one question.
       - Use high confidence only when the answer is clearly durable and supported by sources.
       - If not saving, return shouldSave false and empty strings/arrays for metadata.
-      - Choose the best existing domain and topic implied by the sources.
+      - Do not invent new domain or topic names.
+      - Domain and topic are controlled by the selected source topics.
+      - If metadata is needed, prefer the first selected source topic.
     `,
     user: [
       "Question:",
@@ -37,8 +44,15 @@ export const decideAnswerMemory = async (options: {
       "Answer:",
       options.answer,
       "",
-      "Sources:",
-      ...options.sources.map((source) => `- ${source}`),
+      "Selected source topics:",
+      ...options.sources.map((source) =>
+        [
+          `- path: ${source.path}`,
+          `  title: ${source.title}`,
+          `  domain: ${source.domain ?? ""}`,
+          `  topic: ${source.topic ?? ""}`,
+        ].join("\n"),
+      ),
     ].join("\n"),
   });
 };

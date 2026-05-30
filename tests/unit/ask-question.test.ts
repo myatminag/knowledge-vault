@@ -212,6 +212,68 @@ describe("askQuestion", () => {
     expect(fs.existsSync(path.join(vaultPath, "00-raw", "answers"))).toBe(false);
   });
 
+  test("saves answer memory to the selected topic when LLM metadata drifts", async () => {
+    callStructured.mockImplementation(
+      async ({ name }: { name: string; system: string; user: string }) => {
+        if (name === "topic_selection") {
+          return {
+            selectedPaths: ["04-topics/C/pointers.md"],
+            reason: "C pointers are the relevant topic.",
+          };
+        }
+
+        if (name === "answer_memory_decision") {
+          return {
+            shouldSave: true,
+            title: "Pointers in C overview and usage",
+            domain: "programming",
+            topic: "C pointers",
+            tags: ["pointers", "answer-memory"],
+            summary: "Pointers in C are reusable knowledge.",
+            confidence: "high",
+          };
+        }
+
+        return {
+          title: "Pointers",
+          summary: "Updated C pointers summary.",
+          keyConcepts: [{ name: "Pointer", explanation: "Stores an address." }],
+          deepDive: [{ heading: "Basics", body: "Pointers store addresses." }],
+          related: [],
+          openQuestions: [],
+        };
+      },
+    );
+    writeIndex();
+    writeTopic("04-topics/C/pointers.md", {
+      title: "Pointers",
+      domain: "C",
+      topic: "pointers",
+      tags: ["pointers"],
+      body: "A pointer stores a memory address.",
+    });
+
+    const { askQuestion } = await import("@/core/ask-question");
+
+    const result = await askQuestion("Explain about pointer in C", {});
+    const memoryPath = path.join(vaultPath, result.memoryPath ?? "");
+    const memory = matter(fs.readFileSync(memoryPath, "utf-8"));
+
+    expect(result.memoryPath).toBe(
+      "00-raw/answers/pointers-in-c-overview-and-usage.md",
+    );
+    expect(memory.data.domain).toBe("C");
+    expect(memory.data.topic).toBe("pointers");
+    expect(
+      fs.existsSync(path.join(vaultPath, "04-topics", "C", "pointers.md")),
+    ).toBe(true);
+    expect(
+      fs.existsSync(
+        path.join(vaultPath, "04-topics", "programming", "c-pointers.md"),
+      ),
+    ).toBe(false);
+  });
+
   test("throws clearly when index selection finds no existing topics", async () => {
     callStructured.mockImplementation(
       async ({ name }: { name: string; system: string; user: string }) => {
