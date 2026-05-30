@@ -34,8 +34,11 @@ describe("readCompiledTopics", () => {
         domain: "Database",
         topic: "Indexes",
         tags: ["query-planning"],
+        source_count: 2,
       }),
     );
+    fs.writeFileSync(path.join(vaultPath, "04-topics", "index.md"), "# Index");
+    fs.writeFileSync(path.join(vaultPath, "04-topics", "log.md"), "# Log");
 
     expect(
       readCompiledTopics({
@@ -55,8 +58,22 @@ describe("readCompiledTopics", () => {
         domain: "System Design",
         topic: "Consistent Hashing",
         tags: ["distributed-systems"],
+        sourceCount: 0,
+        sourcePaths: [],
+        createdAt: undefined,
+        updatedAt: undefined,
         body: "# Consistent Hashing\n\nBody",
       },
     ]);
+  });
+
+  test("excludes wiki index and log files from compiled topic reads", () => {
+    const vaultPath = makeTempVault();
+    const topicsDir = path.join(vaultPath, "04-topics");
+    fs.mkdirSync(topicsDir, { recursive: true });
+    fs.writeFileSync(path.join(topicsDir, "index.md"), "# Knowledge Index");
+    fs.writeFileSync(path.join(topicsDir, "log.md"), "# Knowledge Log");
+
+    expect(readCompiledTopics({ vaultPath })).toEqual([]);
   });
 });
