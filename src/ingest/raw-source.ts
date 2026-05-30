@@ -25,6 +25,7 @@ export const scanRawSources = (dir: string) => {
 
   return fs
     .readdirSync(dir)
+    .sort()
     .filter((file) => file.endsWith(".md"))
     .map((file) => {
       const filePath = path.join(dir, file);

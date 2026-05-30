@@ -36,7 +36,7 @@ const buildPrompt = (raws: RawSource[]) => {
 export const compileTopic = async (options: {
   domain?: string;
   topic?: string;
-}) => {
+} = {}) => {
   const rawDir = path.join(config.vault.path, "00-raw");
 
   const raws = scanRawSources(rawDir).filter((raw) => {
@@ -46,8 +46,11 @@ export const compileTopic = async (options: {
   });
 
   const groups = groupByTopicDomain(raws);
+  const compiledPaths: string[] = [];
 
-  for (const [, group] of groups) {
+  for (const [, group] of [...groups.entries()].sort(([a], [b]) =>
+    a.localeCompare(b),
+  )) {
     const first = group[0];
 
     if (!first) continue;
@@ -99,10 +102,8 @@ export const compileTopic = async (options: {
 
     console.log(`Compiled: ${outputPath}`);
 
-    const compiledPaths: string[] = [];
-
     compiledPaths.push(outputPath);
-
-    return { compiledPaths };
   }
+
+  return { compiledPaths };
 };
