@@ -38,7 +38,7 @@ export const readCompiledTopics = (options: {
   vaultPath: string;
   domain?: string;
   topic?: string;
-}) => {
+}): CompiledTopic[] => {
   const topicsDir = path.join(options.vaultPath, "04-topics");
   const files = walkMarkdownFiles(topicsDir).filter((filePath) => {
     const relativePath = path.relative(topicsDir, filePath);

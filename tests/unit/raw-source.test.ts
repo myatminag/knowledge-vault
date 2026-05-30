@@ -52,6 +52,43 @@ describe("scanRawSources", () => {
     ]);
   });
 
+  test("parses Markdown files from nested raw source folders", () => {
+    const rawDir = makeTempDir();
+    const answerDir = path.join(rawDir, "answers");
+    const sourcePath = path.join(answerDir, "answer-memory.md");
+    fs.mkdirSync(answerDir, { recursive: true });
+
+    fs.writeFileSync(
+      sourcePath,
+      [
+        "---",
+        "title: Answer Memory",
+        "domain: System Design",
+        "topic: Consistent Hashing",
+        "tags:",
+        "  - answer-memory",
+        "source_type: answer",
+        "---",
+        "",
+        "Reusable answer memory.",
+      ].join("\n"),
+    );
+
+    expect(scanRawSources(rawDir)).toEqual([
+      {
+        path: sourcePath,
+        meta: {
+          title: "Answer Memory",
+          domain: "System Design",
+          topic: "Consistent Hashing",
+          tags: ["answer-memory"],
+          source_type: "answer",
+        },
+        body: "Reusable answer memory.",
+      },
+    ]);
+  });
+
   test("throws a useful error for invalid raw source frontmatter", () => {
     const rawDir = makeTempDir();
     const sourcePath = path.join(rawDir, "invalid.md");
