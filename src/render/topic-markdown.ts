@@ -41,6 +41,7 @@ export const renderTopicMarkdown = (options: {
   domain: string;
   topic: string;
   tags: string[];
+  createdAt?: string;
   sources: {
     title: string;
     path: string;
@@ -48,6 +49,9 @@ export const renderTopicMarkdown = (options: {
   }[];
 }) => {
   const now = formatObsidianDate(new Date());
+  const sourcePaths = [
+    ...new Set(options.sources.map((source) => source.relativePath)),
+  ];
 
   const body = [
     `# ${options.knowledge.title}`,
@@ -91,7 +95,9 @@ export const renderTopicMarkdown = (options: {
     topic: options.topic,
     tags: options.tags,
     source_type: "topic",
-    created_at: now,
+    created_at: options.createdAt ?? now,
     updated_at: now,
+    source_paths: sourcePaths,
+    source_count: sourcePaths.length,
   });
 };

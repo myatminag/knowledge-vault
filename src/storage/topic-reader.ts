@@ -9,6 +9,10 @@ export interface CompiledTopic {
   domain?: string;
   topic?: string;
   tags: string[];
+  sourceCount: number;
+  sourcePaths: string[];
+  createdAt?: string;
+  updatedAt?: string;
   body: string;
 }
 
@@ -34,9 +38,12 @@ export const readCompiledTopics = (options: {
   vaultPath: string;
   domain?: string;
   topic?: string;
-}) => {
+}): CompiledTopic[] => {
   const topicsDir = path.join(options.vaultPath, "04-topics");
-  const files = walkMarkdownFiles(topicsDir);
+  const files = walkMarkdownFiles(topicsDir).filter((filePath) => {
+    const relativePath = path.relative(topicsDir, filePath);
+    return relativePath !== "index.md" && relativePath !== "log.md";
+  });
 
   return files
     .map((filePath) => {
@@ -53,6 +60,24 @@ export const readCompiledTopics = (options: {
         topic:
           typeof parsed.data.topic === "string" ? parsed.data.topic : undefined,
         tags: Array.isArray(parsed.data.tags) ? parsed.data.tags : [],
+        sourceCount:
+          typeof parsed.data.source_count === "number"
+            ? parsed.data.source_count
+            : 0,
+        sourcePaths: Array.isArray(parsed.data.source_paths)
+          ? parsed.data.source_paths.filter(
+              (sourcePath): sourcePath is string =>
+                typeof sourcePath === "string",
+            )
+          : [],
+        createdAt:
+          typeof parsed.data.created_at === "string"
+            ? parsed.data.created_at
+            : undefined,
+        updatedAt:
+          typeof parsed.data.updated_at === "string"
+            ? parsed.data.updated_at
+            : undefined,
         body: parsed.content.trim(),
       };
     })

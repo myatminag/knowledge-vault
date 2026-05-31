@@ -28,7 +28,9 @@ function loadConfig() {
       baseUrl: env.OPENAI_BASE_URL,
     },
     vault: {
-      path: env.KNOWLEDGE_VAULT_PATH,
+      get path() {
+        return process.env.KNOWLEDGE_VAULT_PATH ?? env.KNOWLEDGE_VAULT_PATH;
+      },
     },
   };
 }

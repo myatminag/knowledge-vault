@@ -20,14 +20,29 @@ export interface RawSource {
   body: string;
 }
 
+const walkMarkdownFiles = (dir: string) => {
+  if (!fs.existsSync(dir)) return [];
+
+  const result: string[] = [];
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      result.push(...walkMarkdownFiles(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      result.push(fullPath);
+    }
+  }
+
+  return result.sort();
+};
+
 export const scanRawSources = (dir: string) => {
   if (!fs.existsSync(dir)) return [];
 
-  return fs
-    .readdirSync(dir)
-    .filter((file) => file.endsWith(".md"))
-    .map((file) => {
-      const filePath = path.join(dir, file);
+  return walkMarkdownFiles(dir)
+    .map((filePath) => {
       const parsed = matter(fs.readFileSync(filePath, "utf-8"));
       const result = rawSourceSchema.safeParse(parsed.data);
 
